@@ -90,8 +90,8 @@ GROUP BY specialty_description
 )
 
 SELECT *, 
-opioid_total_count + non_opioid_total_count AS all_drugs_total_count, 
-ROUND(100*opioid_total_count*1./(opioid_total_count + non_opioid_total_count),2) AS opioid_percentage
+	opioid_total_count + non_opioid_total_count AS all_drugs_total_count, 
+	ROUND(100*opioid_total_count*1./(opioid_total_count + non_opioid_total_count),2) AS opioid_percentage
 FROM opioid_count
 FULL JOIN non_opioid_count
 USING(specialty_description)
@@ -99,12 +99,36 @@ ORDER BY opioid_percentage DESC;
 --Case Managers and Orthopaedic Surgery have high  opioid percentages, but they don't prescribe often.
 -- The highest opioid percentage specialty with over 1000 claims is interventional pain management.
 
-/*
-3. 
+
+/*3. 
     a. Which drug (generic_name) had the highest total drug cost?
 
     b. Which drug (generic_name) has the hightest total cost per day? **Bonus: Round your cost per day column to 2 decimal places. Google ROUND to see how this works.**
+*/
+-- a. Which drug (generic_name) had the highest total drug cost
+SELECT generic_name, SUM(total_drug_cost) AS total_cost
+FROM drug
+LEFT JOIN prescription
+USING(drug_name)
+WHERE total_drug_cost IS NOT NULL
+GROUP BY generic_name
+ORDER BY total_cost DESC;
+-- Insulin Glargine had the highest total drug cost at $104,264,066.35
 
+--b. Which drug (generic_name) has the hightest total cost per day?
+SELECT generic_name, 
+	SUM(total_drug_cost) AS total_cost, 
+	SUM(total_day_supply) AS total_days, 
+	ROUND(SUM(total_drug_cost)/SUM(total_day_supply),2) AS cost_per_day
+FROM drug
+LEFT JOIN prescription
+USING(drug_name)
+WHERE total_drug_cost IS NOT NULL
+GROUP BY generic_name
+ORDER BY cost_per_day DESC;
+-- The drug with the highest cost per day is C1 Esterase Inhibitor at $3,495.22/day
+
+/*
 4. 
     a. For each drug in the drug table, return the drug name and then a column named 'drug_type' which says 'opioid' for drugs which have opioid_drug_flag = 'Y', says 'antibiotic' for those drugs which have antibiotic_drug_flag = 'Y', and says 'neither' for all other drugs.
 

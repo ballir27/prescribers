@@ -95,7 +95,7 @@ SELECT *,
 FROM opioid_count
 FULL JOIN non_opioid_count
 USING(specialty_description)
-ORDER BY opioid_percentage DESC;
+ORDER BY opioid_percentage DESC NULLS LAST;
 --Case Managers and Orthopaedic Surgery have high  opioid percentages, but they don't prescribe often.
 -- The highest opioid percentage specialty with over 1000 claims is interventional pain management.
 
@@ -106,7 +106,7 @@ ORDER BY opioid_percentage DESC;
     b. Which drug (generic_name) has the hightest total cost per day? **Bonus: Round your cost per day column to 2 decimal places. Google ROUND to see how this works.**
 */
 -- a. Which drug (generic_name) had the highest total drug cost
-SELECT generic_name, SUM(total_drug_cost) AS total_cost
+SELECT generic_name, CAST(SUM(total_drug_cost) AS MONEY) AS total_cost
 FROM drug
 LEFT JOIN prescription
 USING(drug_name)
@@ -119,7 +119,7 @@ ORDER BY total_cost DESC;
 SELECT generic_name, 
 	SUM(total_drug_cost) AS total_cost, 
 	SUM(total_day_supply) AS total_days, 
-	ROUND(SUM(total_drug_cost)/SUM(total_day_supply),2) AS cost_per_day
+	CAST(ROUND(SUM(total_drug_cost)/SUM(total_day_supply),2) AS MONEY) AS cost_per_day
 FROM drug
 LEFT JOIN prescription
 USING(drug_name)
@@ -143,7 +143,7 @@ ELSE 'neither' END) AS drug_type
 FROM drug;
 
 -- b. Building off of the query you wrote for part a, determine whether more was spent (total_drug_cost) on opioids or on antibiotics. Hint: Format the total costs as MONEY for easier comparision.
-SELECT drug_type, SUM(total_drug_cost) AS total_cost_by_drug_type
+SELECT drug_type, CAST(SUM(total_drug_cost) AS MONEY) AS total_cost_by_drug_type
 FROM prescription
 INNER JOIN(
 SELECT drug_name,
